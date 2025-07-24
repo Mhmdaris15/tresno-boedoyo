@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  VOLUNTEER
+  COORDINATOR
+  ADMIN
+}
+
+enum OpportunityStatus {
+  DRAFT
+  PUBLISHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(VOLUNTEER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  volunteer      Volunteer?
+  coordinator    Coordinator?
+  generatedBatiks GeneratedBatik[]
+  batikGallery   BatikGallery[]
+
+  @@map("users")
+}
+
+model Volunteer {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  firstName         String
+  lastName          String
+  phone             String?
+  dateOfBirth       DateTime?
+  nationality       String?
+  languages         String[] // JSON array of languages
+  bio               String?
+  profilePicture    String?
+  walletAddress     String?
+  totalHours        Float    @default(0)
+  totalOpportunities Int     @default(0)
+  rating            Float?
+  isAvailable       Boolean  @default(true)
+  joinedAt          DateTime @default(now())
+  lastActiveAt      DateTime @default(now())
+
+  // Relations
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills       VolunteerSkill[]
+  interests    VolunteerInterest[]
+  availability VolunteerAvailability[]
+  applications Application[]
+  achievements Achievement[]
+
+  @@map("volunteers")
+}
+
+model Coordinator {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  firstName    String
+  lastName     String
+  phone        String?
+  department   String?
+  bio          String?
+  
+  // Relations
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunities Opportunity[]
+
+  @@map("coordinators")
+}
+
+model Skill {
+  id          String @id @default(cuid())
+  name        String @unique
+  category    String
+  description String?
+
+  // Relations
+  volunteerSkills    VolunteerSkill[]
+  opportunitySkills  OpportunitySkill[]
+
+  @@map("skills")
+}
+
+model VolunteerSkill {
+  id          String     @id @default(cuid())
+  volunteerId String
+  skillId     String
+  level       SkillLevel @default(BEGINNER)
+  experience  String?    // Years of experience or description
+
+  // Relations
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, skillId])
+  @@map("volunteer_skills")
+}
+
+model Interest {
+  id          String @id @default(cuid())
+  name        String @unique
+  category    String
+  description String?
+
+  // Relations
+  volunteerInterests VolunteerInterest[]
+
+  @@map("interests")
+}
+
+model VolunteerInterest {
+  id          String @id @default(cuid())
+  volunteerId String
+  interestId  String
+
+  // Relations
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  interest  Interest  @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, interestId])
+  @@map("volunteer_interests")
+}
+
+model VolunteerAvailability {
+  id          String   @id @default(cuid())
+  volunteerId String
+  dayOfWeek   Int      // 0-6 (Sunday to Saturday)
+  startTime   String   // HH:MM format
+  endTime     String   // HH:MM format
+  timezone    String   @default("Asia/Jakarta")
+
+  // Relations
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@map("volunteer_availability")
+}
+
+model Opportunity {
+  id             String            @id @default(cuid())
+  coordinatorId  String
+  title          String
+  description    String
+  location       String
+  dateTime       DateTime
+  duration       Int               // Duration in hours
+  maxVolunteers  Int               @default(1)
+  status         OpportunityStatus @default(DRAFT)
+  impactStatement String?
+  requirements   String?
+  benefits       String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  // Relations
+  coordinator Coordinator        @relation(fields: [coordinatorId], references: [id])
+  skills      OpportunitySkill[]
+  applications Application[]
+
+  @@map("opportunities")
+}
+
+model OpportunitySkill {
+  id            String     @id @default(cuid())
+  opportunityId String
+  skillId       String
+  required      Boolean    @default(true)
+  level         SkillLevel @default(BEGINNER)
+
+  // Relations
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill       Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, skillId])
+  @@map("opportunity_skills")
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  volunteerId   String
+  opportunityId String
+  status        ApplicationStatus @default(PENDING)
+  message       String?
+  feedback      String?
+  appliedAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  completedAt   DateTime?
+
+  // Relations
+  volunteer   Volunteer   @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, opportunityId])
+  @@map("applications")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  volunteerId String
+  type        String   // e.g., "HOURS_MILESTONE", "OPPORTUNITY_COUNT", "SPECIAL_RECOGNITION"
+  title       String
+  description String
+  tokenId     String?  // Blockchain token ID
+  imageUrl    String?
+  earnedAt    DateTime @default(now())
+
+  // Relations
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@map("achievements")
+}
+
+model MatchingSession {
+  id            String   @id @default(cuid())
+  opportunityId String
+  aiPrompt      String
+  aiResponse    String
+  matchedVolunteers String[] // Array of volunteer IDs
+  createdAt     DateTime @default(now())
+
+  @@map("matching_sessions")
+}
+
+model GeneratedBatik {
+  id              String   @id @default(cuid())
+  userId          String
+  prompt          String   @db.Text
+  originalPrompt  String   @db.Text
+  motif           String
+  style           String
+  colors          String[] // Array of hex color codes
+  region          String
+  complexity      String
+  imageUrl        String
+  imageBase64     String?  @db.Text
+  inGallery       Boolean  @default(false)
+  isPublic        Boolean  @default(false)
+  downloadCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleryEntries  BatikGallery[]
+
+  @@map("generated_batiks")
+}
+
+model BatikGallery {
+  id        String   @id @default(cuid())
+  userId    String
+  batikId   String
+  title     String?
+  description String?
+  tags      String[]
+  likes     Int      @default(0)
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batik     GeneratedBatik @relation(fields: [batikId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, batikId])
+  @@map("batik_gallery")
+}

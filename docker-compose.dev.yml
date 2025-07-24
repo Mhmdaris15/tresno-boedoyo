@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ihs-postgres
+    environment:
+      POSTGRES_DB: ihs_connect
+      POSTGRES_USER: ihs_user
+      POSTGRES_PASSWORD: ihs_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ihs-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: ihs-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ihs-network
+
+  # Backend Service
+  backend:
+    build: ./backend
+    container_name: ihs-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://ihs_user:ihs_password@postgres:5432/ihs_connect
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-development-jwt-secret
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      WEB3_SERVICE_URL: http://web3-service:3003
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - ihs-network
+
+  # Frontend Service
+  frontend:
+    build: ./frontend
+    container_name: ihs-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:3001/api
+      REACT_APP_WEB3_SERVICE_URL: http://localhost:3003/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - ihs-network
+
+  # Web3 Service
+  web3-service:
+    build: ./web3-service
+    container_name: ihs-web3
+    environment:
+      NODE_ENV: development
+      PRIVATE_KEY: ${PRIVATE_KEY}
+      POLYGON_RPC_URL: ${POLYGON_RPC_URL}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      THIRDWEB_SECRET_KEY: ${THIRDWEB_SECRET_KEY}
+      BACKEND_SERVICE_URL: http://backend:3001
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./web3-service:/app
+      - /app/node_modules
+    networks:
+      - ihs-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ihs-network:
+    driver: bridge
