@@ -79,14 +79,14 @@ export default function ProfilePage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Profile</h2>
             </div>
             <Link 
               href="/dashboard"
-              className="text-gray-600 hover:text-blue-600 font-medium"
+              className="text-gray-600 hover:text-heritage-600 font-medium"
             >
               Back to Dashboard
             </Link>
@@ -101,7 +101,7 @@ export default function ProfilePage() {
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-8">
             <div className="flex items-center space-x-6">
               <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-heritage-600">
                   {(formData.firstName?.[0] || user?.email?.[0] || 'U').toUpperCase()}
                 </span>
               </div>
@@ -128,7 +128,7 @@ export default function ProfilePage() {
               <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
               <button
                 onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700"
               >
                 {isEditing ? 'Save Changes' : 'Edit Profile'}
               </button>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700"
                 >
                   Save Changes
                 </button>

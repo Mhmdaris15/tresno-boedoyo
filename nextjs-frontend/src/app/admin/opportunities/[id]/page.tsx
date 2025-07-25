@@ -166,7 +166,7 @@ export default function OpportunityDetail() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">Opportunity not found</h2>
-          <Link href="/admin/opportunities" className="text-blue-600 hover:text-blue-800">
+          <Link href="/admin/opportunities" className="text-heritage-600 hover:text-blue-800">
             Return to Opportunities
           </Link>
         </div>
@@ -182,7 +182,7 @@ export default function OpportunityDetail() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Opportunity Details</h2>
@@ -190,13 +190,13 @@ export default function OpportunityDetail() {
             <div className="flex items-center space-x-4">
               <Link
                 href={`/admin/opportunities/${opportunity.id}/edit`}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700"
               >
                 Edit Opportunity
               </Link>
               <Link 
                 href="/admin/opportunities"
-                className="text-gray-600 hover:text-blue-600 font-medium"
+                className="text-gray-600 hover:text-heritage-600 font-medium"
               >
                 Back to Opportunities
               </Link>
@@ -228,7 +228,7 @@ export default function OpportunityDetail() {
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-blue-600">{opportunity.currentParticipants}</p>
+                  <p className="text-2xl font-bold text-heritage-600">{opportunity.currentParticipants}</p>
                   <p className="text-sm text-gray-600">Current Participants</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
@@ -262,7 +262,7 @@ export default function OpportunityDetail() {
               <ul className="space-y-2">
                 {opportunity.requirements.map((requirement, index) => (
                   <li key={index} className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
+                    <span className="text-heritage-600 mr-2">•</span>
                     <span className="text-gray-700">{requirement}</span>
                   </li>
                 ))}
@@ -325,7 +325,7 @@ export default function OpportunityDetail() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Coordinator</h3>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-semibold text-blue-600">
+                  <span className="text-sm font-semibold text-heritage-600">
                     {opportunity.coordinator.firstName[0]}{opportunity.coordinator.lastName[0]}
                   </span>
                 </div>

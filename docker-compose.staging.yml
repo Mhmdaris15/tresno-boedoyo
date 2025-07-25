@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-frontend:latest
+    container_name: tresno-frontend-staging
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=staging
+      - NEXT_PUBLIC_API_URL=${STAGING_API_URL}
+      - NEXT_PUBLIC_WEB3_RPC_URL=${STAGING_RPC_URL}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-staging.rule=Host(`staging.tresno-boedoyo.com`)"
+      - "traefik.http.routers.frontend-staging.tls=true"
+      - "traefik.http.routers.frontend-staging.tls.certresolver=letsencrypt"
+
+  # Backend Service
+  backend:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-backend:latest
+    container_name: tresno-backend-staging
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=staging
+      - DATABASE_URL=${STAGING_DATABASE_URL}
+      - JWT_SECRET=${STAGING_JWT_SECRET}
+      - CORS_ORIGIN=https://staging.tresno-boedoyo.com
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-staging.rule=Host(`api-staging.tresno-boedoyo.com`)"
+      - "traefik.http.routers.backend-staging.tls=true"
+      - "traefik.http.routers.backend-staging.tls.certresolver=letsencrypt"
+
+  # Web3 Service
+  web3-service:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-web3-service:latest
+    container_name: tresno-web3-staging
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=staging
+      - WEB3_PRIVATE_KEY=${STAGING_WEB3_PRIVATE_KEY}
+      - RPC_URL=${STAGING_RPC_URL}
+      - BACKEND_URL=http://backend:3001
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web3-staging.rule=Host(`web3-staging.tresno-boedoyo.com`)"
+      - "traefik.http.routers.web3-staging.tls=true"
+      - "traefik.http.routers.web3-staging.tls.certresolver=letsencrypt"
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: tresno-postgres-staging
+    environment:
+      - POSTGRES_DB=tresno_boedoyo_staging
+      - POSTGRES_USER=${STAGING_DB_USER}
+      - POSTGRES_PASSWORD=${STAGING_DB_PASSWORD}
+    volumes:
+      - postgres_data_staging:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_DB_USER} -d tresno_boedoyo_staging"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: tresno-redis-staging
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_staging:/data
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: tresno-nginx-staging
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/staging.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/ssl/certs
+    depends_on:
+      - frontend
+      - backend
+      - web3-service
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tresno-prometheus-staging
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data_staging:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tresno-grafana-staging
+    ports:
+      - "3030:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana_data_staging:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+volumes:
+  postgres_data_staging:
+    driver: local
+  redis_data_staging:
+    driver: local
+  prometheus_data_staging:
+    driver: local
+  grafana_data_staging:
+    driver: local
+
+networks:
+  tresno-network:
+    driver: bridge

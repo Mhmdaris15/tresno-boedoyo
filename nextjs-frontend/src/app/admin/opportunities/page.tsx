@@ -192,7 +192,7 @@ export default function AdminOpportunities() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Opportunity Management</h2>
@@ -200,13 +200,13 @@ export default function AdminOpportunities() {
             <div className="flex items-center space-x-4">
               <Link 
                 href="/admin/opportunities/create"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
+                className="bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700 font-medium"
               >
                 Create Opportunity
               </Link>
               <Link 
                 href="/admin"
-                className="text-gray-600 hover:text-blue-600 font-medium"
+                className="text-gray-600 hover:text-heritage-600 font-medium"
               >
                 Back to Admin
               </Link>
@@ -329,7 +329,7 @@ export default function AdminOpportunities() {
                       <div className="flex justify-end space-x-2">
                         <Link
                           href={`/admin/opportunities/${opportunity.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-heritage-600 hover:text-blue-900"
                         >
                           View
                         </Link>
@@ -366,7 +366,7 @@ export default function AdminOpportunities() {
             <div className="mt-6">
               <Link
                 href="/admin/opportunities/create"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
+                className="bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700 font-medium"
               >
                 Create New Opportunity
               </Link>

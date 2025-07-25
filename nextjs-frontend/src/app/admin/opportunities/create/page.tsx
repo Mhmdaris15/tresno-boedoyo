@@ -132,14 +132,14 @@ export default function CreateOpportunity() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Create Opportunity</h2>
             </div>
             <Link 
               href="/admin/opportunities"
-              className="text-gray-600 hover:text-blue-600 font-medium"
+              className="text-gray-600 hover:text-heritage-600 font-medium"
             >
               Back to Opportunities
             </Link>
@@ -288,7 +288,7 @@ export default function CreateOpportunity() {
             <button
               type="button"
               onClick={() => addArrayField('requirements')}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-heritage-600 hover:text-blue-800 text-sm"
             >
               + Add Requirement
             </button>
@@ -320,7 +320,7 @@ export default function CreateOpportunity() {
             <button
               type="button"
               onClick={() => addArrayField('skills')}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-heritage-600 hover:text-blue-800 text-sm"
             >
               + Add Skill
             </button>
@@ -352,7 +352,7 @@ export default function CreateOpportunity() {
             <button
               type="button"
               onClick={() => addArrayField('benefits')}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-heritage-600 hover:text-blue-800 text-sm"
             >
               + Add Benefit
             </button>
@@ -370,7 +370,7 @@ export default function CreateOpportunity() {
               type="button"
               onClick={(e) => handleSubmit(e, 'DRAFT')}
               disabled={isSubmitting}
-              className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50"
+              className="px-6 py-2 border border-blue-600 text-heritage-600 rounded-lg hover:bg-blue-50 disabled:opacity-50"
             >
               Save as Draft
             </button>
@@ -378,7 +378,7 @@ export default function CreateOpportunity() {
               type="button"
               onClick={(e) => handleSubmit(e, 'ACTIVE')}
               disabled={isSubmitting || !formData.title || !formData.description}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-6 py-2 bg-heritage-600 text-white rounded-lg hover:bg-heritage-700 disabled:opacity-50"
             >
               {isSubmitting ? 'Publishing...' : 'Publish Opportunity'}
             </button>

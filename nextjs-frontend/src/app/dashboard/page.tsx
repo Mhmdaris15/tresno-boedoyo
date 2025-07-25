@@ -40,7 +40,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -55,7 +55,7 @@ export default function DashboardPage() {
                   Admin Panel
                 </Link>
               )}
-              <button 
+              <button
                 onClick={handleLogout}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
               >
@@ -77,10 +77,10 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-heritage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
@@ -89,15 +89,15 @@ export default function DashboardPage() {
             <p className="text-gray-600 mb-4">
               Update your personal information and skills
             </p>
-            <Link 
+            <Link
               href="/profile"
-              className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
+              className="block w-full bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 transition-colors text-center"
             >
               Edit Profile
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
                 <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,9 +109,9 @@ export default function DashboardPage() {
             <p className="text-gray-600 mb-4">
               Browse and apply for heritage preservation opportunities
             </p>
-            <Link 
+            <Link
               href="/opportunities"
-              className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
+              className="block w-full bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 transition-colors text-center"
             >
               Browse Opportunities
             </Link>
@@ -129,9 +129,9 @@ export default function DashboardPage() {
             <p className="text-gray-600 mb-4">
               View your contributions and earned recognition
             </p>
-            <Link 
+            <Link
               href="/achievements"
-              className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center"
+              className="block w-full bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 transition-colors text-center"
             >
               View Achievements
             </Link>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
             <p className="text-gray-600 mb-4">
               Create traditional Indonesian batik patterns with AI technology
             </p>
-            <Link 
+            <Link
               href="/batik-studio"
               className="block w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-2 px-4 rounded-lg hover:from-orange-700 hover:to-red-700 transition-colors text-center"
             >
@@ -163,7 +163,7 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold mb-6">Your Impact</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+              <div className="text-3xl font-bold text-heritage-600 mb-2">0</div>
               <div className="text-sm text-gray-600">Participations</div>
             </div>
             <div className="text-center">

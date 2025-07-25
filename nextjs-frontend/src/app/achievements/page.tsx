@@ -124,14 +124,14 @@ export default function AchievementsPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/dashboard">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Achievements</h2>
             </div>
             <Link 
               href="/dashboard"
-              className="text-gray-600 hover:text-blue-600 font-medium"
+              className="text-gray-600 hover:text-heritage-600 font-medium"
             >
               Back to Dashboard
             </Link>
@@ -258,7 +258,7 @@ export default function AchievementsPage() {
             </p>
             <Link 
               href="/opportunities"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+              className="bg-heritage-600 text-white px-6 py-3 rounded-lg hover:bg-heritage-700 font-medium"
             >
               Explore Opportunities
             </Link>

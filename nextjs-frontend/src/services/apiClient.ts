@@ -176,17 +176,17 @@ class ApiClient {
     limit?: number
   }) {
     const queryString = params ? '?' + new URLSearchParams(params as any).toString() : ''
-    return this.request(`/batik-studio/history${queryString}`)
+    return this.request(`/api/batik-studio/history${queryString}`)
   }
 
   async saveBatikToGallery(batikId: string) {
-    return this.request(`/batik-studio/${batikId}/save`, {
+    return this.request(`/api/batik-studio/${batikId}/save`, {
       method: 'POST',
     })
   }
 
   async downloadBatik(batikId: string) {
-    return this.request(`/batik-studio/${batikId}/download`)
+    return this.request(`/api/batik-studio/${batikId}/download`)
   }
 
   // Utility methods

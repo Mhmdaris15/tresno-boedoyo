@@ -56,7 +56,7 @@ export default function RegisterPage() {
       <div className="max-w-lg w-full space-y-8">
         <div>
           <Link href="/" className="flex justify-center">
-            <h1 className="text-2xl font-bold text-blue-600">Tresno Boedoyo</h1>
+            <h1 className="text-2xl font-bold text-heritage-600">Tresno Boedoyo</h1>
           </Link>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
             Create your account
@@ -244,7 +244,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-heritage-600 hover:bg-heritage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -263,7 +263,7 @@ export default function RegisterPage() {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/login" className="font-medium text-heritage-600 hover:text-blue-500">
                 Sign in here
               </Link>
             </p>

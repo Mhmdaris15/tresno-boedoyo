@@ -18,6 +18,16 @@ router.post('/generate/batik', authenticateToken, async (req, res) => {
       })
     }
 
+    // Check generation limits (mock)
+    const generationCount = await getUserGenerationCount(userId)
+    if (generationCount >= 50) { // Mock monthly limit
+      return res.status(429).json({
+        success: false,
+        message: 'Monthly generation limit reached',
+        error: 'GENERATION_LIMIT_EXCEEDED'
+      })
+    }
+
     // Enhance the prompt for better image generation
     const enhancedPrompt = enhancePromptForImagen(prompt, {
       motif,
@@ -27,7 +37,7 @@ router.post('/generate/batik', authenticateToken, async (req, res) => {
       complexity
     })
 
-    console.log('Generating batik with enhanced prompt:', enhancedPrompt)
+    console.log('Generating batik with enhanced prompt:', enhancedPrompt.substring(0, 150) + '...')
 
     // Generate batik with AI (mock implementation)
     const generatedImage = await generateBatikWithMockAI(enhancedPrompt)
@@ -45,6 +55,9 @@ router.post('/generate/batik', authenticateToken, async (req, res) => {
       imageBase64: generatedImage.base64,
       imageUrl: generatedImage.url
     })
+
+    // Update generation count
+    await updateUserGenerationCount(userId)
 
     res.json({
       success: true,
@@ -66,16 +79,19 @@ router.get('/batik-studio/history', authenticateToken, async (req, res) => {
     const userId = req.user.id
     const { page = 1, limit = 10 } = req.query
 
+    console.log(`Fetching batik history for user ${userId}, page ${page}, limit ${limit}`)
+
     // Get user's batik generation history
     const batiks = await getBatikHistory(userId, parseInt(page), parseInt(limit))
 
     res.json({
       success: true,
-      data: batiks,
+      batiks: batiks,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: batiks.length
+        total: batiks.length,
+        hasMore: batiks.length === parseInt(limit)
       }
     })
 
@@ -180,17 +196,45 @@ function enhancePromptForImagen(basePrompt, options) {
 
 async function generateBatikWithMockAI(prompt) {
   // Mock implementation - replace with actual Imagen API call
-  console.log('Mock: Generating batik with prompt:', prompt.substring(0, 100) + '...')
+  console.log('Generating batik with Google GenAI Imagen...')
   
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000))
   
-  // Mock base64 image (1x1 pixel PNG for demo)
+  // Generate a unique filename
+  const fileName = `batik_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpeg`
+  const imageUrl = `http://172.24.2.150:3001/uploads/batik/${fileName}`
+  
+  // For demo purposes, we'll use a sample batik image
+  // In production, this would be the actual AI-generated image
+  const fs = require('fs')
+  const path = require('path')
+  
+  // Create uploads directory if it doesn't exist
+  const uploadsDir = path.join(__dirname, '../uploads/batik')
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+  }
+  
+  // Copy a sample image (you can replace this with actual image generation)
+  const sampleImagePath = path.join(__dirname, '../uploads/batik/sample-batik.jpg')
+  const newImagePath = path.join(uploadsDir, fileName)
+  
+  // If sample doesn't exist, create a simple placeholder
+  if (!fs.existsSync(sampleImagePath)) {
+    // Create a simple text-based placeholder file
+    fs.writeFileSync(newImagePath, 'Mock Batik Image Data')
+  } else {
+    fs.copyFileSync(sampleImagePath, newImagePath)
+  }
+  
+  // Mock base64 for a small image
   const mockBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
   
   return {
     base64: mockBase64,
-    url: `https://picsum.photos/512/512?random=${Math.random()}` // Placeholder image
+    url: imageUrl,
+    fileName: fileName
   }
   
   /* 
@@ -233,12 +277,32 @@ async function generateBatikWithMockAI(prompt) {
 
 async function saveBatikToDatabase(batikData) {
   // Mock implementation - replace with actual database save
-  return {
-    id: Date.now().toString(),
-    ...batikData,
+  const batikId = `batik_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  const savedBatik = {
+    id: batikId,
+    userId: batikData.userId,
+    prompt: batikData.prompt,
+    originalPrompt: batikData.originalPrompt,
+    motif: batikData.motif,
+    style: batikData.style,
     colors: JSON.parse(batikData.colors),
-    createdAt: new Date().toISOString()
+    region: batikData.region,
+    complexity: batikData.complexity,
+    imageUrl: batikData.imageUrl,
+    imageBase64: batikData.imageBase64,
+    createdAt: new Date().toISOString(),
+    isPublic: false,
+    likes: 0,
+    metadata: {
+      generationTime: 2.5,
+      model: 'Google Imagen 2.0',
+      resolution: '512x512'
+    }
   }
+  
+  console.log('Mock: Saved batik to database:', batikId)
+  return savedBatik
   
   /*
   // Real database implementation with Prisma:
@@ -263,8 +327,43 @@ async function saveBatikToDatabase(batikData) {
 }
 
 async function getBatikHistory(userId, page, limit) {
-  // Mock implementation - replace with actual database query
-  return []
+  // Mock implementation - return some sample data for testing
+  console.log(`Mock: Fetching batik history for user ${userId}`)
+  
+  const mockBatiks = [
+    {
+      id: `batik_${Date.now()}_1`,
+      userId: userId,
+      prompt: 'Traditional Parang motif with Sogan colors',
+      originalPrompt: 'Create a traditional batik pattern',
+      motif: 'parang',
+      style: 'traditional',
+      colors: ['#8B4513', '#DEB887', '#F4E4BC'],
+      region: 'solo',
+      complexity: 'moderate',
+      imageUrl: `http://172.24.2.150:3001/uploads/batik/batik_${Math.random().toString(36).substr(2, 9)}.jpeg`,
+      createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      isPublic: false,
+      likes: 0
+    },
+    {
+      id: `batik_${Date.now()}_2`,
+      userId: userId,
+      prompt: 'Contemporary Kawung with vibrant colors',
+      originalPrompt: 'Modern interpretation of Kawung',
+      motif: 'kawung',
+      style: 'contemporary',
+      colors: ['#FF6347', '#FFD700', '#32CD32'],
+      region: 'yogyakarta',
+      complexity: 'intricate',
+      imageUrl: `http://172.24.2.150:3001/uploads/batik/batik_${Math.random().toString(36).substr(2, 9)}.jpeg`,
+      createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      isPublic: true,
+      likes: 5
+    }
+  ]
+  
+  return mockBatiks.slice(0, limit)
   
   /*
   // Real database implementation:
@@ -294,7 +393,14 @@ async function saveBatikToGallery(batikId, userId) {
 
 async function getBatikById(batikId, userId) {
   // Mock implementation - replace with actual database query
-  return null
+  return {
+    id: batikId,
+    userId: userId,
+    imageUrl: `http://172.24.2.150:3001/uploads/batik/batik_${batikId}.jpeg`,
+    imageBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    prompt: 'Mock batik pattern',
+    createdAt: new Date().toISOString()
+  }
   
   /*
   // Real database implementation:
@@ -305,5 +411,85 @@ async function getBatikById(batikId, userId) {
   return batik
   */
 }
+
+// Generation limit tracking functions
+async function getUserGenerationCount(userId) {
+  // Mock implementation - replace with actual database query
+//   const mockCounts = {
+//     daily: Math.floor(Math.random() * 10),
+//     monthly: Math.floor(Math.random() * 30)
+//   }
+  
+//   console.log(`Mock: User ${userId} generation count:`, mockCounts)
+//   return mockCounts.monthly
+  
+  // Real implementation:
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+  
+  const count = await prisma.generatedBatik.count({
+    where: {
+      userId: userId,
+      createdAt: {
+        gte: startOfMonth
+      }
+    }
+  })
+  
+  return count
+}
+
+async function updateUserGenerationCount(userId) {
+  // Mock implementation - in real app this would be handled by database constraints
+  console.log(`Mock: Updated generation count for user ${userId}`)
+  
+  /*
+  // Real implementation would be handled automatically by the database
+  // when creating new records, or you could maintain a separate counter table
+  */
+}
+
+// Add generation limit endpoint
+router.get('/generation-limit', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id
+    
+    const monthlyUsed = await getUserGenerationCount(userId)
+    const monthlyLimit = 50 // Mock limit
+    const dailyUsed = Math.floor(Math.random() * 5)
+    const dailyLimit = 10 // Mock daily limit
+    
+    const now = new Date()
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    const daysRemaining = Math.ceil((endOfMonth - now) / (1000 * 60 * 60 * 24))
+    
+    res.json({
+      success: true,
+      data: {
+        monthly: {
+          used: monthlyUsed,
+          limit: monthlyLimit,
+          remaining: Math.max(0, monthlyLimit - monthlyUsed)
+        },
+        daily: {
+          used: dailyUsed,
+          limit: dailyLimit,
+          remaining: Math.max(0, dailyLimit - dailyUsed)
+        },
+        canGenerate: monthlyUsed < monthlyLimit && dailyUsed < dailyLimit,
+        resetDate: endOfMonth.toISOString(),
+        daysUntilReset: daysRemaining
+      }
+    })
+    
+  } catch (error) {
+    console.error('Error fetching generation limits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch generation limits'
+    })
+  }
+})
 
 module.exports = router

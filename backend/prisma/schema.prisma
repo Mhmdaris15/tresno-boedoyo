@@ -48,10 +48,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  volunteer      Volunteer?
-  coordinator    Coordinator?
-  generatedBatiks GeneratedBatik[]
-  batikGallery   BatikGallery[]
+  volunteer           Volunteer?
+  coordinator         Coordinator?
+  generatedBatiks     GeneratedBatik[]
+  batikGallery        BatikGallery[]
+  batikLikes          BatikLike[]
+  batikComments       BatikComment[]
+  batikCollections    BatikCollection[]
+  generationLimit     UserGenerationLimit?
 
   @@map("users")
 }
@@ -273,8 +277,9 @@ model GeneratedBatik {
   updatedAt       DateTime @updatedAt
 
   // Relations
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  galleryEntries  BatikGallery[]
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleryEntries     BatikGallery[]
+  collectionItems    BatikCollectionItem[]
 
   @@map("generated_batiks")
 }
@@ -294,7 +299,84 @@ model BatikGallery {
   // Relations
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   batik     GeneratedBatik @relation(fields: [batikId], references: [id], onDelete: Cascade)
+  likes_received BatikLike[]
+  comments  BatikComment[]
 
   @@unique([userId, batikId])
   @@map("batik_gallery")
+}
+
+model BatikLike {
+  id        String   @id @default(cuid())
+  userId    String
+  galleryId String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, galleryId])
+  @@map("batik_likes")
+}
+
+model BatikComment {
+  id        String   @id @default(cuid())
+  userId    String
+  galleryId String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@map("batik_comments")
+}
+
+model BatikCollection {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       BatikCollectionItem[]
+
+  @@map("batik_collections")
+}
+
+model BatikCollectionItem {
+  id           String   @id @default(cuid())
+  collectionId String
+  batikId      String
+  addedAt      DateTime @default(now())
+
+  // Relations
+  collection   BatikCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  batik        GeneratedBatik  @relation(fields: [batikId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, batikId])
+  @@map("batik_collection_items")
+}
+
+model UserGenerationLimit {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  monthlyLimit    Int      @default(5)
+  currentCount    Int      @default(0)
+  lastResetDate   DateTime @default(now())
+  totalGenerated  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_generation_limits")
 }

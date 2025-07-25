@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
@@ -14,6 +14,32 @@ export default function LoginPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const [showSplash, setShowSplash] = useState(true)
+  
+  useEffect(() => {
+      const timer = setTimeout(() => {
+        setShowSplash(false)
+      }, 3500) // Splash screen will show for 4 seconds
+
+      return () => clearTimeout(timer)
+    }, [])
+  
+    if (showSplash) {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-heritage-600 z-50">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <h1 className="text-4xl font-bold text-white mb-4">Tresno Boedoyo</h1>
+              <p className="text-xl text-blue-100">Preserving Indonesia's Cultural Heritage</p>
+            </div>
+            <div className="mt-8">
+              <div className="h-2 w-32 bg-white rounded-full mx-auto animate-bounce"></div>
+            </div>
+          </div>
+        </div>
+      )
+    }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +68,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <Link href="/" className="flex justify-center">
-            <h1 className="text-2xl font-bold text-blue-600">Tresno Boedoyo</h1>
+            <h1 className="text-2xl font-bold text-heritage-600">Tresno Boedoyo</h1>
           </Link>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
             Sign in to your account
@@ -101,7 +127,7 @@ export default function LoginPage() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-heritage-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                 Remember me
@@ -109,7 +135,7 @@ export default function LoginPage() {
             </div>
 
             <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/forgot-password" className="font-medium text-heritage-600 hover:text-blue-500">
                 Forgot your password?
               </Link>
             </div>
@@ -119,7 +145,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-heritage-600 hover:bg-heritage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -138,7 +164,7 @@ export default function LoginPage() {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/register" className="font-medium text-heritage-600 hover:text-blue-500">
                 Sign up here
               </Link>
             </p>

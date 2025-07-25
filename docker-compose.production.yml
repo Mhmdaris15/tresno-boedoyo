@@ -1,0 +1,313 @@
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-frontend:latest
+    container_name: tresno-frontend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${PROD_API_URL}
+      - NEXT_PUBLIC_WEB3_RPC_URL=${PROD_RPC_URL}
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-prod.rule=Host(`tresno-boedoyo.com`)"
+      - "traefik.http.routers.frontend-prod.tls=true"
+      - "traefik.http.routers.frontend-prod.tls.certresolver=letsencrypt"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Backend Service
+  backend:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-backend:latest
+    container_name: tresno-backend-prod
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${PROD_DATABASE_URL}
+      - JWT_SECRET=${PROD_JWT_SECRET}
+      - CORS_ORIGIN=https://tresno-boedoyo.com
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-prod.rule=Host(`api.tresno-boedoyo.com`)"
+      - "traefik.http.routers.backend-prod.tls=true"
+      - "traefik.http.routers.backend-prod.tls.certresolver=letsencrypt"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # Web3 Service
+  web3-service:
+    image: ghcr.io/mhmdaris15/tresno-boedoyo-web3-service:latest
+    container_name: tresno-web3-prod
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - WEB3_PRIVATE_KEY=${PROD_WEB3_PRIVATE_KEY}
+      - RPC_URL=${PROD_RPC_URL}
+      - BACKEND_URL=http://backend:3001
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web3-prod.rule=Host(`web3.tresno-boedoyo.com`)"
+      - "traefik.http.routers.web3-prod.tls=true"
+      - "traefik.http.routers.web3-prod.tls.certresolver=letsencrypt"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # PostgreSQL Database with Replication
+  postgres:
+    image: postgres:15-alpine
+    container_name: tresno-postgres-prod
+    environment:
+      - POSTGRES_DB=tresno_boedoyo_prod
+      - POSTGRES_USER=${PROD_DB_USER}
+      - POSTGRES_PASSWORD=${PROD_DB_PASSWORD}
+      - POSTGRES_REPLICATION_MODE=master
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=${PROD_DB_REPLICATION_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/backup:/backup
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PROD_DB_USER} -d tresno_boedoyo_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache with Persistence
+  redis:
+    image: redis:7-alpine
+    container_name: tresno-redis-prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_prod:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: tresno-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/ssl/certs
+      - nginx_logs_prod:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+      - web3-service
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Database Backup Service
+  db-backup:
+    image: postgres:15-alpine
+    container_name: tresno-backup-prod
+    environment:
+      - PGUSER=${PROD_DB_USER}
+      - PGPASSWORD=${PROD_DB_PASSWORD}
+      - PGHOST=postgres
+      - PGDATABASE=tresno_boedoyo_prod
+    volumes:
+      - ./database/backup:/backup
+      - ./scripts/backup.sh:/backup.sh
+    command: >
+      sh -c "
+        while true; do
+          echo 'Creating database backup...'
+          pg_dump -h postgres -U $${PROD_DB_USER} $${PGDATABASE} > /backup/backup_$$(date +%Y%m%d_%H%M%S).sql
+          echo 'Backup completed'
+          # Keep only last 7 days of backups
+          find /backup -name '*.sql' -mtime +7 -delete
+          sleep 86400
+        done
+      "
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tresno-prometheus-prod
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data_prod:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tresno-grafana-prod
+    ports:
+      - "3030:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - tresno-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: tresno-loki-prod
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml
+      - loki_data_prod:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+  # Log Collector
+  promtail:
+    image: grafana/promtail:latest
+    container_name: tresno-promtail-prod
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - tresno-network
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+  prometheus_data_prod:
+    driver: local
+  grafana_data_prod:
+    driver: local
+  loki_data_prod:
+    driver: local
+  nginx_logs_prod:
+    driver: local
+
+networks:
+  tresno-network:
+    driver: bridge

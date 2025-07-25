@@ -178,14 +178,14 @@ export default function AdminVolunteers() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <h1 className="text-xl font-bold text-blue-600">Tresno Boedoyo</h1>
+                <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
               </Link>
               <span className="text-gray-300">|</span>
               <h2 className="text-lg font-medium text-gray-900">Volunteer Management</h2>
             </div>
             <Link 
               href="/admin"
-              className="text-gray-600 hover:text-blue-600 font-medium"
+              className="text-gray-600 hover:text-heritage-600 font-medium"
             >
               Back to Admin
             </Link>
@@ -235,7 +235,7 @@ export default function AdminVolunteers() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-lg font-semibold text-blue-600">
+                    <span className="text-lg font-semibold text-heritage-600">
                       {volunteer.volunteer.firstName[0]}{volunteer.volunteer.lastName[0]}
                     </span>
                   </div>
@@ -336,7 +336,7 @@ export default function AdminVolunteers() {
 
               {/* Actions */}
               <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-2">
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                <button className="text-heritage-600 hover:text-blue-800 text-sm font-medium">
                   View Details
                 </button>
                 <button className="text-gray-600 hover:text-gray-800 text-sm font-medium">

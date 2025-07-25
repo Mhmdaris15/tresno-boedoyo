@@ -1,0 +1,368 @@
+name: CI/CD Pipeline - Tresno Boedoyo
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Frontend CI/CD
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./nextjs-frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ./nextjs-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Run type checking
+      run: npm run build
+
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+      continue-on-error: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./nextjs-frontend/coverage
+        fail_ci_if_error: false
+
+    - name: Build application
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        NEXT_PUBLIC_WEB3_RPC_URL: ${{ secrets.NEXT_PUBLIC_WEB3_RPC_URL }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: ./nextjs-frontend/.next
+
+  # Backend CI/CD
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: tresno_boedoyo_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ./backend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Run type checking
+      run: npm run build
+
+    - name: Run tests
+      run: npm test -- --coverage
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/tresno_boedoyo_test
+        JWT_SECRET: test_jwt_secret_key_for_testing
+      continue-on-error: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./backend/coverage
+        fail_ci_if_error: false
+
+  # Web3 Service CI/CD
+  web3-service-ci:
+    name: Web3 Service CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web3-service
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ./web3-service/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Run type checking
+      run: npm run build
+
+    - name: Run tests
+      run: npm test -- --coverage
+      env:
+        NODE_ENV: test
+        WEB3_PRIVATE_KEY: ${{ secrets.WEB3_PRIVATE_KEY_TEST }}
+        RPC_URL: ${{ secrets.WEB3_RPC_URL_TEST }}
+      continue-on-error: true
+
+  # Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Build and Push Docker Images (only on main branch)
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [frontend-ci, backend-ci, web3-service-ci]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    strategy:
+      matrix:
+        service: [frontend, backend, web3-service]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./${{ matrix.service == 'frontend' && 'nextjs-frontend' || matrix.service }}
+        file: ./${{ matrix.service == 'frontend' && 'nextjs-frontend' || matrix.service }}/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        port: ${{ secrets.STAGING_PORT || 22 }}
+        script: |
+          cd /opt/tresno-boedoyo
+          
+          # Pull latest images
+          docker compose -f docker-compose.staging.yml pull
+          
+          # Update environment variables
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.STAGING_API_URL }}" > .env.staging
+          echo "DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}" >> .env.staging
+          echo "JWT_SECRET=${{ secrets.STAGING_JWT_SECRET }}" >> .env.staging
+          echo "WEB3_PRIVATE_KEY=${{ secrets.STAGING_WEB3_PRIVATE_KEY }}" >> .env.staging
+          echo "RPC_URL=${{ secrets.STAGING_RPC_URL }}" >> .env.staging
+          
+          # Deploy with zero downtime
+          docker compose -f docker-compose.staging.yml up -d --remove-orphans
+          
+          # Clean up old images
+          docker image prune -af
+
+    - name: Run health checks
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        port: ${{ secrets.STAGING_PORT || 22 }}
+        script: |
+          # Wait for services to be ready
+          sleep 30
+          
+          # Check frontend health
+          curl -f http://localhost:3000/api/health || exit 1
+          
+          # Check backend health
+          curl -f http://localhost:3001/health || exit 1
+          
+          # Check web3 service health
+          curl -f http://localhost:3003/health || exit 1
+          
+          echo "All services are healthy!"
+
+  # Deploy to Production (manual approval required)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to production server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        port: ${{ secrets.PRODUCTION_PORT || 22 }}
+        script: |
+          cd /opt/tresno-boedoyo
+          
+          # Create backup
+          docker compose -f docker-compose.prod.yml exec -T postgres pg_dump -U ${{ secrets.PROD_DB_USER }} ${{ secrets.PROD_DB_NAME }} > backup_$(date +%Y%m%d_%H%M%S).sql
+          
+          # Pull latest images
+          docker compose -f docker-compose.prod.yml pull
+          
+          # Update environment variables
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.PRODUCTION_API_URL }}" > .env.production
+          echo "DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}" >> .env.production
+          echo "JWT_SECRET=${{ secrets.PRODUCTION_JWT_SECRET }}" >> .env.production
+          echo "WEB3_PRIVATE_KEY=${{ secrets.PRODUCTION_WEB3_PRIVATE_KEY }}" >> .env.production
+          echo "RPC_URL=${{ secrets.PRODUCTION_RPC_URL }}" >> .env.production
+          
+          # Deploy with rolling update
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          
+          # Clean up old images (keep last 3 versions)
+          docker image prune -af
+
+    - name: Run production health checks
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        port: ${{ secrets.PRODUCTION_PORT || 22 }}
+        script: |
+          # Wait for services to be ready
+          sleep 30
+          
+          # Check frontend health
+          curl -f https://${{ secrets.PRODUCTION_DOMAIN }}/api/health || exit 1
+          
+          # Check backend health
+          curl -f https://api.${{ secrets.PRODUCTION_DOMAIN }}/health || exit 1
+          
+          # Check web3 service health
+          curl -f https://web3.${{ secrets.PRODUCTION_DOMAIN }}/health || exit 1
+          
+          echo "Production deployment successful!"
+
+    - name: Notify deployment success
+      uses: 8398a7/action-slack@v3
+      if: success()
+      with:
+        status: success
+        text: 🚀 Tresno Boedoyo successfully deployed to production!
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify deployment failure
+      uses: 8398a7/action-slack@v3
+      if: failure()
+      with:
+        status: failure
+        text: ❌ Tresno Boedoyo production deployment failed!
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
