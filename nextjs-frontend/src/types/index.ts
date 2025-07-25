@@ -125,3 +125,99 @@ export interface DashboardStats {
   userParticipations?: number;
   userAchievements?: number;
 }
+
+// Museum-related types
+export interface Museum {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  description?: string;
+  floorPlanImage?: string;
+  floorPlanWidth?: number;
+  floorPlanHeight?: number;
+  openingHours?: string;
+  contactInfo?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  artifacts?: Artifact[];
+  tours?: Tour[];
+}
+
+export interface Artifact {
+  id: string;
+  museumId: string;
+  name: string;
+  description: string;
+  category: ArtifactCategory;
+  origin?: string;
+  period?: string;
+  materials: string[];
+  significance?: string;
+  talkingPoints: string[];
+  images: string[];
+  xPosition: number;
+  yPosition: number;
+  floor: number;
+  estimatedDuration: number;
+  createdAt: string;
+  updatedAt: string;
+  museum?: Museum;
+  tourStops?: TourStop[];
+}
+
+export type ArtifactCategory = 
+  | 'SCULPTURE'
+  | 'PAINTING'
+  | 'TEXTILE'
+  | 'POTTERY'
+  | 'JEWELRY'
+  | 'WEAPON'
+  | 'MANUSCRIPT'
+  | 'RELIGIOUS_OBJECT'
+  | 'ARCHAEOLOGICAL_FIND'
+  | 'TRADITIONAL_TOOL'
+  | 'INTERACTIVE_DISPLAY'
+  | 'MULTIMEDIA';
+
+export interface Tour {
+  id: string;
+  museumId: string;
+  guideId: string;
+  title: string;
+  description?: string;
+  estimatedDuration: number;
+  maxParticipants?: number;
+  startTime: string;
+  endTime?: string;
+  status: TourStatus;
+  startPointX?: number;
+  startPointY?: number;
+  endPointX?: number;
+  endPointY?: number;
+  optimizedPath?: any;
+  aiNarrative?: string;
+  createdAt: string;
+  updatedAt: string;
+  museum?: Museum;
+  guide?: User;
+  stops?: TourStop[];
+}
+
+export type TourStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+
+export interface TourStop {
+  id: string;
+  tourId: string;
+  artifactId: string;
+  stopOrder: number;
+  estimatedTime?: number;
+  customNotes?: string;
+  aiTransition?: string;
+  createdAt: string;
+  updatedAt: string;
+  tour?: Tour;
+  artifact?: Artifact;
+}

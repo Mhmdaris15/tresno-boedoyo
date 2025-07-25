@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,480 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String               @id @default(cuid())
+  email            String               @unique
+  password         String
+  role             UserRole             @default(VOLUNTEER)
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  batikCollections BatikCollection[]
+  batikComments    BatikComment[]
+  batikGallery     BatikGallery[]
+  batikLikes       BatikLike[]
+  coordinator      Coordinator?
+  generatedBatiks  GeneratedBatik[]
+  siteReports      SiteReport[]
+  siteReviews      SiteReview[]
+  tours            Tour[]
+  generationLimit  UserGenerationLimit?
+  volunteer        Volunteer?
+
+  @@map("users")
+}
+
+model Volunteer {
+  id                 String                  @id @default(cuid())
+  userId             String                  @unique
+  firstName          String
+  lastName           String
+  phone              String?
+  dateOfBirth        DateTime?
+  nationality        String?
+  languages          String[]
+  bio                String?
+  profilePicture     String?
+  walletAddress      String?
+  totalHours         Float                   @default(0)
+  totalOpportunities Int                     @default(0)
+  rating             Float?
+  isAvailable        Boolean                 @default(true)
+  joinedAt           DateTime                @default(now())
+  lastActiveAt       DateTime                @default(now())
+  achievements       Achievement[]
+  applications       Application[]
+  availability       VolunteerAvailability[]
+  interests          VolunteerInterest[]
+  skills             VolunteerSkill[]
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("volunteers")
+}
+
+model Coordinator {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  department    String?
+  bio           String?
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunities Opportunity[]
+
+  @@map("coordinators")
+}
+
+model Skill {
+  id                String             @id @default(cuid())
+  name              String             @unique
+  category          String
+  description       String?
+  opportunitySkills OpportunitySkill[]
+  volunteerSkills   VolunteerSkill[]
+
+  @@map("skills")
+}
+
+model VolunteerSkill {
+  id          String     @id @default(cuid())
+  volunteerId String
+  skillId     String
+  level       SkillLevel @default(BEGINNER)
+  experience  String?
+  skill       Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  volunteer   Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, skillId])
+  @@map("volunteer_skills")
+}
+
+model Interest {
+  id                 String              @id @default(cuid())
+  name               String              @unique
+  category           String
+  description        String?
+  volunteerInterests VolunteerInterest[]
+
+  @@map("interests")
+}
+
+model VolunteerInterest {
+  id          String    @id @default(cuid())
+  volunteerId String
+  interestId  String
+  interest    Interest  @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, interestId])
+  @@map("volunteer_interests")
+}
+
+model VolunteerAvailability {
+  id          String    @id @default(cuid())
+  volunteerId String
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  timezone    String    @default("Asia/Jakarta")
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@map("volunteer_availability")
+}
+
+model Opportunity {
+  id              String             @id @default(cuid())
+  coordinatorId   String
+  title           String
+  description     String
+  location        String
+  dateTime        DateTime
+  duration        Int
+  maxVolunteers   Int                @default(1)
+  status          OpportunityStatus  @default(DRAFT)
+  impactStatement String?
+  requirements    String?
+  benefits        String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  heritageSiteId  String?
+  applications    Application[]
+  coordinator     Coordinator        @relation(fields: [coordinatorId], references: [id])
+  heritageSite    HeritageSite?      @relation(fields: [heritageSiteId], references: [id])
+  skills          OpportunitySkill[]
+
+  @@map("opportunities")
+}
+
+model OpportunitySkill {
+  id            String      @id @default(cuid())
+  opportunityId String
+  skillId       String
+  required      Boolean     @default(true)
+  level         SkillLevel  @default(BEGINNER)
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill         Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, skillId])
+  @@map("opportunity_skills")
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  volunteerId   String
+  opportunityId String
+  status        ApplicationStatus @default(PENDING)
+  message       String?
+  feedback      String?
+  appliedAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  completedAt   DateTime?
+  opportunity   Opportunity       @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  volunteer     Volunteer         @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, opportunityId])
+  @@map("applications")
+}
+
+model Achievement {
+  id          String    @id @default(cuid())
+  volunteerId String
+  type        String
+  title       String
+  description String
+  tokenId     String?
+  imageUrl    String?
+  earnedAt    DateTime  @default(now())
+  volunteer   Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@map("achievements")
+}
+
+model MatchingSession {
+  id                String   @id @default(cuid())
+  opportunityId     String
+  aiPrompt          String
+  aiResponse        String
+  matchedVolunteers String[]
+  createdAt         DateTime @default(now())
+
+  @@map("matching_sessions")
+}
+
+model GeneratedBatik {
+  id              String                @id @default(cuid())
+  userId          String
+  prompt          String
+  originalPrompt  String
+  motif           String
+  style           String
+  colors          String[]
+  region          String
+  complexity      String
+  imageUrl        String
+  imageBase64     String?
+  inGallery       Boolean               @default(false)
+  isPublic        Boolean               @default(false)
+  downloadCount   Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  collectionItems BatikCollectionItem[]
+  galleryEntries  BatikGallery[]
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("generated_batiks")
+}
+
+model BatikGallery {
+  id             String         @id @default(cuid())
+  userId         String
+  batikId        String
+  title          String?
+  description    String?
+  tags           String[]
+  likes          Int            @default(0)
+  views          Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  comments       BatikComment[]
+  batik          GeneratedBatik @relation(fields: [batikId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes_received BatikLike[]
+
+  @@unique([userId, batikId])
+  @@map("batik_gallery")
+}
+
+model BatikLike {
+  id        String       @id @default(cuid())
+  userId    String
+  galleryId String
+  createdAt DateTime     @default(now())
+  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, galleryId])
+  @@map("batik_likes")
+}
+
+model BatikComment {
+  id        String       @id @default(cuid())
+  userId    String
+  galleryId String
+  content   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("batik_comments")
+}
+
+model BatikCollection {
+  id          String                @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isPublic    Boolean               @default(false)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  items       BatikCollectionItem[]
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("batik_collections")
+}
+
+model BatikCollectionItem {
+  id           String          @id @default(cuid())
+  collectionId String
+  batikId      String
+  addedAt      DateTime        @default(now())
+  batik        GeneratedBatik  @relation(fields: [batikId], references: [id], onDelete: Cascade)
+  collection   BatikCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, batikId])
+  @@map("batik_collection_items")
+}
+
+model UserGenerationLimit {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  monthlyLimit   Int      @default(5)
+  currentCount   Int      @default(0)
+  lastResetDate  DateTime @default(now())
+  totalGenerated Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_generation_limits")
+}
+
+model HeritageSite {
+  id                 String             @id @default(cuid())
+  name               String
+  description        String
+  type               HeritageSiteType
+  category           String
+  location           String
+  address            String?
+  latitude           Float
+  longitude          Float
+  province           String
+  city               String
+  establishedDate    DateTime?
+  unescoStatus       Boolean            @default(false)
+  culturalValue      String?
+  historicalPeriod   String?
+  architecture       String?
+  significance       String?
+  images             String[]
+  virtualTourUrl     String?
+  officialWebsite    String?
+  openingHours       String?
+  entryFee           String?
+  bestTimeToVisit    String?
+  accessibility      String?
+  facilities         String[]
+  conservationStatus ConservationStatus @default(GOOD)
+  threatLevel        ThreatLevel        @default(LOW)
+  lastAssessment     DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  opportunities      Opportunity[]
+  siteReports        SiteReport[]
+  siteReviews        SiteReview[]
+
+  @@map("heritage_sites")
+}
+
+model SiteReport {
+  id          String       @id @default(cuid())
+  siteId      String
+  reporterId  String
+  reportType  ReportType
+  description String
+  urgency     UrgencyLevel @default(LOW)
+  images      String[]
+  latitude    Float?
+  longitude   Float?
+  status      String       @default("PENDING")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  site        HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("site_reports")
+}
+
+model SiteReview {
+  id         String       @id @default(cuid())
+  siteId     String
+  reviewerId String
+  rating     Int
+  comment    String?
+  visitDate  DateTime?
+  images     String[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  reviewer   User         @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  site       HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, reviewerId])
+  @@map("site_reviews")
+}
+
+model Museum {
+  id              String     @id @default(cuid())
+  name            String
+  address         String
+  city            String
+  province        String
+  description     String?
+  floorPlanImage  String?
+  floorPlanWidth  Float?
+  floorPlanHeight Float?
+  openingHours    String?
+  contactInfo     String?
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  artifacts       Artifact[]
+  tours           Tour[]
+
+  @@map("museums")
+}
+
+model Artifact {
+  id                String           @id @default(cuid())
+  museumId          String
+  name              String
+  description       String
+  category          ArtifactCategory
+  origin            String?
+  period            String?
+  materials         String[]
+  significance      String?
+  talkingPoints     String[]
+  images            String[]
+  xPosition         Float
+  yPosition         Float
+  floor             Int              @default(1)
+  acquisitionDate   DateTime?
+  isDisplayed       Boolean          @default(true)
+  estimatedDuration Int?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  museum            Museum           @relation(fields: [museumId], references: [id], onDelete: Cascade)
+  tourStops         TourStop[]
+
+  @@map("artifacts")
+}
+
+model Tour {
+  id                String     @id @default(cuid())
+  museumId          String
+  guideId           String
+  title             String
+  description       String?
+  estimatedDuration Int
+  maxParticipants   Int?
+  startTime         DateTime
+  endTime           DateTime?
+  status            TourStatus @default(DRAFT)
+  startPointX       Float?
+  startPointY       Float?
+  endPointX         Float?
+  endPointY         Float?
+  optimizedPath     Json?
+  aiNarrative       String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  stops             TourStop[]
+  guide             User       @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  museum            Museum     @relation(fields: [museumId], references: [id], onDelete: Cascade)
+
+  @@map("tours")
+}
+
+model TourStop {
+  id            String   @id @default(cuid())
+  tourId        String
+  artifactId    String
+  stopOrder     Int
+  estimatedTime Int?
+  customNotes   String?
+  aiTransition  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  artifact      Artifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  tour          Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@unique([tourId, stopOrder])
+  @@map("tour_stops")
 }
 
 enum UserRole {
@@ -38,402 +509,6 @@ enum SkillLevel {
   EXPERT
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      UserRole @default(VOLUNTEER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  volunteer           Volunteer?
-  coordinator         Coordinator?
-  generatedBatiks     GeneratedBatik[]
-  batikGallery        BatikGallery[]
-  batikLikes          BatikLike[]
-  batikComments       BatikComment[]
-  batikCollections    BatikCollection[]
-  generationLimit     UserGenerationLimit?
-  siteReports         SiteReport[]
-  siteReviews         SiteReview[]
-
-  @@map("users")
-}
-
-model Volunteer {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  firstName         String
-  lastName          String
-  phone             String?
-  dateOfBirth       DateTime?
-  nationality       String?
-  languages         String[] // JSON array of languages
-  bio               String?
-  profilePicture    String?
-  walletAddress     String?
-  totalHours        Float    @default(0)
-  totalOpportunities Int     @default(0)
-  rating            Float?
-  isAvailable       Boolean  @default(true)
-  joinedAt          DateTime @default(now())
-  lastActiveAt      DateTime @default(now())
-
-  // Relations
-  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills       VolunteerSkill[]
-  interests    VolunteerInterest[]
-  availability VolunteerAvailability[]
-  applications Application[]
-  achievements Achievement[]
-
-  @@map("volunteers")
-}
-
-model Coordinator {
-  id           String  @id @default(cuid())
-  userId       String  @unique
-  firstName    String
-  lastName     String
-  phone        String?
-  department   String?
-  bio          String?
-  
-  // Relations
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  opportunities Opportunity[]
-
-  @@map("coordinators")
-}
-
-model Skill {
-  id          String @id @default(cuid())
-  name        String @unique
-  category    String
-  description String?
-
-  // Relations
-  volunteerSkills    VolunteerSkill[]
-  opportunitySkills  OpportunitySkill[]
-
-  @@map("skills")
-}
-
-model VolunteerSkill {
-  id          String     @id @default(cuid())
-  volunteerId String
-  skillId     String
-  level       SkillLevel @default(BEGINNER)
-  experience  String?    // Years of experience or description
-
-  // Relations
-  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
-
-  @@unique([volunteerId, skillId])
-  @@map("volunteer_skills")
-}
-
-model Interest {
-  id          String @id @default(cuid())
-  name        String @unique
-  category    String
-  description String?
-
-  // Relations
-  volunteerInterests VolunteerInterest[]
-
-  @@map("interests")
-}
-
-model VolunteerInterest {
-  id          String @id @default(cuid())
-  volunteerId String
-  interestId  String
-
-  // Relations
-  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-  interest  Interest  @relation(fields: [interestId], references: [id], onDelete: Cascade)
-
-  @@unique([volunteerId, interestId])
-  @@map("volunteer_interests")
-}
-
-model VolunteerAvailability {
-  id          String   @id @default(cuid())
-  volunteerId String
-  dayOfWeek   Int      // 0-6 (Sunday to Saturday)
-  startTime   String   // HH:MM format
-  endTime     String   // HH:MM format
-  timezone    String   @default("Asia/Jakarta")
-
-  // Relations
-  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-
-  @@map("volunteer_availability")
-}
-
-model Opportunity {
-  id             String            @id @default(cuid())
-  coordinatorId  String
-  title          String
-  description    String
-  location       String
-  heritageSiteId String?           // Optional relation to heritage site
-  dateTime       DateTime
-  duration       Int               // Duration in hours
-  maxVolunteers  Int               @default(1)
-  status         OpportunityStatus @default(DRAFT)
-  impactStatement String?
-  requirements   String?
-  benefits       String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  // Relations
-  coordinator  Coordinator        @relation(fields: [coordinatorId], references: [id])
-  heritageSite HeritageSite?      @relation(fields: [heritageSiteId], references: [id])
-  skills       OpportunitySkill[]
-  applications Application[]
-
-  @@map("opportunities")
-}
-
-model OpportunitySkill {
-  id            String     @id @default(cuid())
-  opportunityId String
-  skillId       String
-  required      Boolean    @default(true)
-  level         SkillLevel @default(BEGINNER)
-
-  // Relations
-  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  skill       Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
-
-  @@unique([opportunityId, skillId])
-  @@map("opportunity_skills")
-}
-
-model Application {
-  id            String            @id @default(cuid())
-  volunteerId   String
-  opportunityId String
-  status        ApplicationStatus @default(PENDING)
-  message       String?
-  feedback      String?
-  appliedAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  completedAt   DateTime?
-
-  // Relations
-  volunteer   Volunteer   @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-
-  @@unique([volunteerId, opportunityId])
-  @@map("applications")
-}
-
-model Achievement {
-  id          String   @id @default(cuid())
-  volunteerId String
-  type        String   // e.g., "HOURS_MILESTONE", "OPPORTUNITY_COUNT", "SPECIAL_RECOGNITION"
-  title       String
-  description String
-  tokenId     String?  // Blockchain token ID
-  imageUrl    String?
-  earnedAt    DateTime @default(now())
-
-  // Relations
-  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-
-  @@map("achievements")
-}
-
-model MatchingSession {
-  id            String   @id @default(cuid())
-  opportunityId String
-  aiPrompt      String
-  aiResponse    String
-  matchedVolunteers String[] // Array of volunteer IDs
-  createdAt     DateTime @default(now())
-
-  @@map("matching_sessions")
-}
-
-model GeneratedBatik {
-  id              String   @id @default(cuid())
-  userId          String
-  prompt          String   @db.Text
-  originalPrompt  String   @db.Text
-  motif           String
-  style           String
-  colors          String[] // Array of hex color codes
-  region          String
-  complexity      String
-  imageUrl        String
-  imageBase64     String?  @db.Text
-  inGallery       Boolean  @default(false)
-  isPublic        Boolean  @default(false)
-  downloadCount   Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  galleryEntries     BatikGallery[]
-  collectionItems    BatikCollectionItem[]
-
-  @@map("generated_batiks")
-}
-
-model BatikGallery {
-  id        String   @id @default(cuid())
-  userId    String
-  batikId   String
-  title     String?
-  description String?
-  tags      String[]
-  likes     Int      @default(0)
-  views     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  batik     GeneratedBatik @relation(fields: [batikId], references: [id], onDelete: Cascade)
-  likes_received BatikLike[]
-  comments  BatikComment[]
-
-  @@unique([userId, batikId])
-  @@map("batik_gallery")
-}
-
-model BatikLike {
-  id        String   @id @default(cuid())
-  userId    String
-  galleryId String
-  createdAt DateTime @default(now())
-
-  // Relations
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, galleryId])
-  @@map("batik_likes")
-}
-
-model BatikComment {
-  id        String   @id @default(cuid())
-  userId    String
-  galleryId String
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gallery   BatikGallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
-
-  @@map("batik_comments")
-}
-
-model BatikCollection {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  description String?
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       BatikCollectionItem[]
-
-  @@map("batik_collections")
-}
-
-model BatikCollectionItem {
-  id           String   @id @default(cuid())
-  collectionId String
-  batikId      String
-  addedAt      DateTime @default(now())
-
-  // Relations
-  collection   BatikCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  batik        GeneratedBatik  @relation(fields: [batikId], references: [id], onDelete: Cascade)
-
-  @@unique([collectionId, batikId])
-  @@map("batik_collection_items")
-}
-
-model UserGenerationLimit {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  monthlyLimit    Int      @default(5)
-  currentCount    Int      @default(0)
-  lastResetDate   DateTime @default(now())
-  totalGenerated  Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_generation_limits")
-}
-
-// Heritage Sites Models
-model HeritageSite {
-  id              String   @id @default(cuid())
-  name            String
-  description     String   @db.Text
-  type            HeritageSiteType
-  category        String   // Temple, Palace, Traditional Village, etc.
-  location        String
-  address         String?
-  latitude        Float
-  longitude       Float
-  province        String
-  city            String
-  establishedDate DateTime?
-  unescoStatus    Boolean  @default(false)
-  culturalValue   String?  @db.Text
-  historicalPeriod String?
-  architecture    String?
-  significance    String?  @db.Text
-  
-  // Media
-  images          String[] // Array of image URLs
-  virtualTourUrl  String?
-  officialWebsite String?
-  
-  // Visitor Information
-  openingHours    String?
-  entryFee        String?
-  bestTimeToVisit String?
-  accessibility   String?
-  facilities      String[]
-  
-  // Preservation Status
-  conservationStatus ConservationStatus @default(GOOD)
-  threatLevel        ThreatLevel        @default(LOW)
-  lastAssessment     DateTime?
-  
-  // Relations
-  opportunities   Opportunity[]
-  siteReports     SiteReport[]
-  siteReviews     SiteReview[]
-  
-  // Metadata
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@map("heritage_sites")
-}
-
 enum HeritageSiteType {
   TEMPLE
   PALACE
@@ -462,27 +537,6 @@ enum ThreatLevel {
   CRITICAL
 }
 
-model SiteReport {
-  id              String       @id @default(cuid())
-  siteId          String
-  reporterId      String
-  reportType      ReportType
-  description     String       @db.Text
-  urgency         UrgencyLevel @default(LOW)
-  images          String[]
-  latitude        Float?
-  longitude       Float?
-  status          String       @default("PENDING")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  
-  // Relations
-  site            HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  reporter        User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-  
-  @@map("site_reports")
-}
-
 enum ReportType {
   DAMAGE
   VANDALISM
@@ -499,21 +553,24 @@ enum UrgencyLevel {
   CRITICAL
 }
 
-model SiteReview {
-  id              String   @id @default(cuid())
-  siteId          String
-  reviewerId      String
-  rating          Int      // 1-5 stars
-  comment         String?  @db.Text
-  visitDate       DateTime?
-  images          String[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  site            HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  reviewer        User         @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
-  
-  @@unique([siteId, reviewerId])
-  @@map("site_reviews")
+enum ArtifactCategory {
+  SCULPTURE
+  PAINTING
+  TEXTILE
+  POTTERY
+  JEWELRY
+  WEAPON
+  MANUSCRIPT
+  RELIGIOUS_OBJECT
+  ARCHAEOLOGICAL_FIND
+  TRADITIONAL_TOOL
+  INTERACTIVE_DISPLAY
+  MULTIMEDIA
+}
+
+enum TourStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
