@@ -85,36 +85,36 @@ class ApiClient {
     location?: string
   }) {
     const queryString = params ? '?' + new URLSearchParams(params as any).toString() : ''
-    return this.request(`/opportunities${queryString}`)
+    return this.request(`/api/opportunities${queryString}`)
   }
 
   async getOpportunity(id: string) {
-    return this.request(`/opportunities/${id}`)
+    return this.request(`/api/opportunities/${id}`)
   }
 
   async createOpportunity(opportunityData: any) {
-    return this.request('/opportunities', {
+    return this.request('/api/opportunities', {
       method: 'POST',
       body: JSON.stringify(opportunityData),
     })
   }
 
   async updateOpportunity(id: string, opportunityData: any) {
-    return this.request(`/opportunities/${id}`, {
+    return this.request(`/api/opportunities/${id}`, {
       method: 'PUT',
       body: JSON.stringify(opportunityData),
     })
   }
 
   async deleteOpportunity(id: string) {
-    return this.request(`/opportunities/${id}`, {
+    return this.request(`/api/opportunities/${id}`, {
       method: 'DELETE',
     })
   }
 
   // Applications endpoints
   async applyToOpportunity(opportunityId: string, applicationData: any) {
-    return this.request(`/opportunities/${opportunityId}/apply`, {
+    return this.request(`/api/opportunities/${opportunityId}/apply`, {
       method: 'POST',
       body: JSON.stringify(applicationData),
     })

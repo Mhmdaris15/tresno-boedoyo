@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { apiClient } from '@/services/apiClient'
 
 interface Opportunity {
   id: string
@@ -16,6 +17,22 @@ interface Opportunity {
   maxParticipants: number
   currentParticipants: number
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+  coordinator?: {
+    name: string
+    email: string
+  }
+  skills?: Array<{
+    name: string
+    category: string
+    required: boolean
+    level: string
+  }>
+  requirements?: string
+  benefits?: string
+  impactStatement?: string
+  duration?: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 export default function OpportunitiesPage() {
@@ -24,6 +41,8 @@ export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [filter, setFilter] = useState('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -32,67 +51,90 @@ export default function OpportunitiesPage() {
   }, [isAuthenticated, loading, router])
 
   useEffect(() => {
-    // TODO: Fetch real opportunities from API
-    // For now, using mock data
-    setOpportunities([
-      {
-        id: '1',
-        title: 'Borobudur Temple Documentation',
-        description: 'Help document and preserve the ancient reliefs of Borobudur Temple through digital photography and cataloging.',
-        type: 'DOCUMENTATION',
-        location: 'Magelang, Central Java',
-        startDate: '2025-08-01',
-        endDate: '2025-08-15',
-        maxParticipants: 20,
-        currentParticipants: 12,
-        status: 'ACTIVE'
-      },
-      {
-        id: '2',
-        title: 'Prambanan Stone Conservation',
-        description: 'Assist in the conservation efforts for Prambanan Temple complex, including cleaning and restoration work.',
-        type: 'MAINTENANCE',
-        location: 'Yogyakarta',
-        startDate: '2025-08-10',
-        endDate: '2025-08-25',
-        maxParticipants: 15,
-        currentParticipants: 8,
-        status: 'ACTIVE'
-      },
-      {
-        id: '3',
-        title: 'Traditional Batik Research',
-        description: 'Research and document traditional batik techniques from Central Java for cultural preservation.',
-        type: 'RESEARCH',
-        location: 'Solo, Central Java',
-        startDate: '2025-07-20',
-        endDate: '2025-07-30',
-        maxParticipants: 10,
-        currentParticipants: 10,
-        status: 'COMPLETED'
-      },
-      {
-        id: '4',
-        title: 'Heritage Education Program',
-        description: 'Develop and deliver educational programs about Indonesian heritage to local schools.',
-        type: 'EDUCATION',
-        location: 'Jakarta',
-        startDate: '2025-09-01',
-        endDate: '2025-09-30',
-        maxParticipants: 25,
-        currentParticipants: 5,
-        status: 'ACTIVE'
+    const fetchOpportunities = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const params: any = {}
+        
+        // Only add status filter if not ALL
+        if (filter !== 'ALL') {
+          if (filter === 'ACTIVE') {
+            params.status = 'PUBLISHED'
+          } else {
+            params.status = filter
+          }
+        }
+        
+        // Add search term
+        if (searchTerm.trim()) {
+          params.search = searchTerm.trim()
+        }
+
+        const response = await apiClient.getOpportunities(params)
+        
+        if (response.opportunities) {
+          setOpportunities(response.opportunities)
+        } else {
+          // Handle case where response is direct array (legacy)
+          setOpportunities(Array.isArray(response) ? response : [])
+        }
+        
+      } catch (error) {
+        console.error('Error fetching opportunities:', error)
+        setError(error instanceof Error ? error.message : 'Failed to fetch opportunities')
+        // Fall back to empty array on error
+        setOpportunities([])
+      } finally {
+        setIsLoading(false)
       }
-    ])
-  }, [])
+    }
+
+    if (isAuthenticated) {
+      fetchOpportunities()
+    }
+  }, [isAuthenticated, filter, searchTerm])
 
   const filteredOpportunities = opportunities.filter(opp => {
     const matchesFilter = filter === 'ALL' || opp.status === filter
-    const matchesSearch = opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = searchTerm === '' || 
+                         opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          opp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          opp.location.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesFilter && matchesSearch
   })
+
+  const handleApplyToOpportunity = async (opportunityId: string) => {
+    try {
+      await apiClient.applyToOpportunity(opportunityId, { 
+        message: 'I am interested in this opportunity' 
+      })
+      
+      // Refresh opportunities to show updated participant count
+      const params: any = {}
+      if (filter !== 'ALL') {
+        if (filter === 'ACTIVE') {
+          params.status = 'PUBLISHED'
+        } else {
+          params.status = filter
+        }
+      }
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim()
+      }
+      
+      const response = await apiClient.getOpportunities(params)
+      if (response.opportunities) {
+        setOpportunities(response.opportunities)
+      }
+      
+      alert('Application submitted successfully!')
+    } catch (error) {
+      console.error('Error applying to opportunity:', error)
+      alert(error instanceof Error ? error.message : 'Failed to apply to opportunity')
+    }
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -114,16 +156,61 @@ export default function OpportunitiesPage() {
     }
   }
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-heritage-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading opportunities...</p>
+        </div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
     return null
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-4">
+                <Link href="/dashboard">
+                  <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
+                </Link>
+                <span className="text-gray-300">|</span>
+                <h2 className="text-lg font-medium text-gray-900">Opportunities</h2>
+              </div>
+              <Link 
+                href="/dashboard"
+                className="text-gray-600 hover:text-heritage-600 font-medium"
+              >
+                Back to Dashboard
+              </Link>
+            </div>
+          </div>
+        </header>
+        
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <svg className="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading opportunities</h3>
+            <p className="mt-1 text-sm text-gray-500">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-heritage-600 text-white px-4 py-2 rounded-lg hover:bg-heritage-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -229,15 +316,70 @@ export default function OpportunitiesPage() {
                     </svg>
                     {opportunity.currentParticipants}/{opportunity.maxParticipants} participants
                   </div>
+                  {opportunity.coordinator && (
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      {opportunity.coordinator.name}
+                    </div>
+                  )}
+                  {opportunity.duration && (
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {opportunity.duration} hours
+                    </div>
+                  )}
                 </div>
+
+                {/* Skills section */}
+                {opportunity.skills && opportunity.skills.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Required Skills:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {opportunity.skills.slice(0, 3).map((skill, index) => (
+                        <span 
+                          key={index}
+                          className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                      {opportunity.skills.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-50 text-gray-500 text-xs rounded-full">
+                          +{opportunity.skills.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="flex space-x-3">
-                  <button className="flex-1 bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 text-sm font-medium">
-                    {opportunity.status === 'ACTIVE' ? 'Apply Now' : 'View Details'}
-                  </button>
-                  <button className="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                  {opportunity.status === 'ACTIVE' && opportunity.currentParticipants < opportunity.maxParticipants ? (
+                    <button 
+                      onClick={() => handleApplyToOpportunity(opportunity.id)}
+                      className="flex-1 bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 text-sm font-medium transition-colors"
+                    >
+                      Apply Now
+                    </button>
+                  ) : (
+                    <button 
+                      disabled
+                      className="flex-1 bg-gray-300 text-gray-500 py-2 px-4 rounded-lg text-sm font-medium cursor-not-allowed"
+                    >
+                      {opportunity.status === 'COMPLETED' ? 'Completed' : 
+                       opportunity.status === 'CANCELLED' ? 'Cancelled' :
+                       opportunity.currentParticipants >= opportunity.maxParticipants ? 'Full' : 'View Details'}
+                    </button>
+                  )}
+                  <Link 
+                    href={`/opportunities/${opportunity.id}`}
+                    className="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors text-center"
+                  >
                     Learn More
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
