@@ -117,7 +117,29 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          {/* Heritage Sites Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold">Heritage Sites</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Discover and explore Indonesia's cultural heritage sites with interactive maps
+            </p>
+            <Link
+              href="/heritage-sites"
+              className="block w-full bg-heritage-600 text-white py-2 px-4 rounded-lg hover:bg-heritage-700 transition-colors text-center"
+            >
+              Explore Heritage Sites
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +159,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-lg flex items-center justify-center mr-3">
                 <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,6 +178,26 @@ export default function DashboardPage() {
               Create Batik Patterns
             </Link>
           </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m6.364 7.364a9 9 0 11-12.728 0 9 9 0 0112.728 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold">Heritage Map</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Explore Indonesia's heritage sites through interactive maps
+            </p>
+            <Link
+              href="/heritage-sites"
+              className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+            >
+              View Heritage Map
+            </Link>
+            </div>
         </div>
 
         {/* Stats Overview */}

@@ -1,0 +1,19 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bagan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#065F46;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#047857;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bagan)"/>
+  <rect x="150" y="160" width="40" height="30" fill="#F3F4F6" opacity="0.8"/>
+  <rect x="210" y="150" width="40" height="40" fill="#F3F4F6" opacity="0.8"/>
+  <polygon points="170,160 170,140 190,140" fill="#DC2626" opacity="0.7"/>
+  <polygon points="230,150 230,130 250,130" fill="#DC2626" opacity="0.7"/>
+  <rect x="160" y="170" width="8" height="15" fill="#78716C"/>
+  <rect x="175" y="170" width="8" height="15" fill="#78716C"/>
+  <rect x="220" y="165" width="8" height="20" fill="#78716C"/>
+  <rect x="235" y="165" width="8" height="20" fill="#78716C"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Bagan Si Api-api</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Archaeological Site</text>
+</svg>

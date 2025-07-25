@@ -1,0 +1,16 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sangiran" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#92400E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sangiran)"/>
+  <ellipse cx="200" cy="180" rx="100" ry="40" fill="#FEF3C7" opacity="0.7"/>
+  <circle cx="150" cy="160" r="15" fill="#78716C"/>
+  <circle cx="200" cy="170" r="18" fill="#78716C"/>
+  <circle cx="250" cy="165" r="12" fill="#78716C"/>
+  <rect x="180" y="120" width="40" height="60" fill="#F3F4F6" opacity="0.8"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Sangiran Site</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Early Man Archaeological Site</text>
+</svg>

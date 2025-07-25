@@ -1,0 +1,19 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dieng" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B7280;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9CA3AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#dieng)"/>
+  <ellipse cx="200" cy="200" rx="80" ry="20" fill="#E5E7EB" opacity="0.6"/>
+  <rect x="170" y="140" width="25" height="60" fill="#F3F4F6" opacity="0.9"/>
+  <rect x="205" y="130" width="25" height="70" fill="#F3F4F6" opacity="0.9"/>
+  <polygon points="182,140 182,120 207,120" fill="#F59E0B" opacity="0.8"/>
+  <polygon points="217,130 217,110 242,110" fill="#F59E0B" opacity="0.8"/>
+  <circle cx="150" cy="160" r="8" fill="#6B7280" opacity="0.7"/>
+  <circle cx="250" cy="150" r="10" fill="#6B7280" opacity="0.7"/>
+  <circle cx="320" cy="180" r="6" fill="#6B7280" opacity="0.7"/>
+  <text x="200" y="250" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Dieng Plateau</text>
+  <text x="200" y="270" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Ancient Hindu Temples</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="kraton" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#kraton)"/>
+  <rect x="100" y="120" width="200" height="80" fill="#FEF3C7" opacity="0.9"/>
+  <rect x="180" y="100" width="40" height="100" fill="#F59E0B" opacity="0.8"/>
+  <rect x="120" y="140" width="20" height="40" fill="#D97706"/>
+  <rect x="160" y="140" width="20" height="40" fill="#D97706"/>
+  <rect x="220" y="140" width="20" height="40" fill="#D97706"/>
+  <rect x="260" y="140" width="20" height="40" fill="#D97706"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Sultan Palace</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Yogyakarta Kraton</text>
+</svg>

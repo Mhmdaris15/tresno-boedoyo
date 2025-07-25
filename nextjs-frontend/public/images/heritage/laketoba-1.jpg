@@ -1,0 +1,17 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="laketoba" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#laketoba)"/>
+  <ellipse cx="200" cy="180" rx="150" ry="60" fill="#DBEAFE" opacity="0.8"/>
+  <ellipse cx="200" cy="180" rx="120" ry="45" fill="#3B82F6" opacity="0.6"/>
+  <circle cx="200" cy="180" r="30" fill="#059669" opacity="0.8"/>
+  <rect x="190" y="160" width="20" height="25" fill="#16A34A"/>
+  <polygon points="80,140 120,120 160,140 120,150" fill="#16A34A" opacity="0.7"/>
+  <polygon points="240,140 280,120 320,140 280,150" fill="#16A34A" opacity="0.7"/>
+  <text x="200" y="250" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Lake Toba</text>
+  <text x="200" y="270" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Cultural Landscape</text>
+</svg>

@@ -17,6 +17,7 @@ import matchingRoutes from './routes/matching';
 import achievementRoutes from './routes/achievements';
 import userRoutes from './routes/users';
 import batikStudioRoutes from './routes/batikStudio';
+import heritageSitesRoutes from './routes/heritage-sites';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -114,6 +115,7 @@ app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/heritage-sites', heritageSitesRoutes);
 app.use('/api', batikStudioRoutes);
 
 // Error handling middleware

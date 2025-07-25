@@ -1,0 +1,19 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="minang" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B91C1C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#minang)"/>
+  <rect x="120" y="140" width="160" height="80" fill="#FEF3C7" opacity="0.9"/>
+  <polygon points="120,140 200,100 280,140" fill="#DC2626"/>
+  <polygon points="140,100 160,80 180,100" fill="#991B1B"/>
+  <polygon points="220,100 240,80 260,100" fill="#991B1B"/>
+  <rect x="140" y="160" width="15" height="40" fill="#D97706"/>
+  <rect x="165" y="160" width="15" height="40" fill="#D97706"/>
+  <rect x="220" y="160" width="15" height="40" fill="#D97706"/>
+  <rect x="245" y="160" width="15" height="40" fill="#D97706"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Minangkabau Houses</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Traditional Architecture</text>
+</svg>

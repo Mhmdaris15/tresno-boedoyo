@@ -1,0 +1,17 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="prambanan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#prambanan)"/>
+  <rect x="150" y="100" width="30" height="100" fill="#FEF3C7" opacity="0.9"/>
+  <rect x="190" y="80" width="30" height="120" fill="#FEF3C7" opacity="0.9"/>
+  <rect x="230" y="100" width="30" height="100" fill="#FEF3C7" opacity="0.9"/>
+  <triangle points="165,100 175,70 185,100" fill="#F59E0B"/>
+  <triangle points="205,80 215,50 225,80" fill="#F59E0B"/>
+  <triangle points="245,100 255,70 265,100" fill="#F59E0B"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Prambanan Temple</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Hindu Temple Complex</text>
+</svg>

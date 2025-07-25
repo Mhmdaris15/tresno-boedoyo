@@ -1,0 +1,133 @@
+// Heritage Sites Database Schema Extension
+// Add to your existing Prisma schema
+
+model HeritageSite {
+  id              String   @id @default(cuid())
+  name            String
+  description     String   @db.Text
+  type            HeritageSiteType
+  category        String   // Temple, Palace, Traditional Village, etc.
+  location        String
+  address         String?
+  latitude        Float
+  longitude       Float
+  province        String
+  city            String
+  establishedDate DateTime?
+  unescoStatus    Boolean  @default(false)
+  culturalValue   String?  @db.Text
+  historicalPeriod String?
+  architecture    String?
+  significance    String?  @db.Text
+  
+  // Media
+  images          String[] // Array of image URLs
+  virtualTourUrl  String?
+  officialWebsite String?
+  
+  // Visitor Information
+  openingHours    String?
+  entryFee        String?
+  bestTimeToVisit String?
+  accessibility   String?
+  facilities      String[]
+  
+  // Preservation Status
+  conservationStatus ConservationStatus @default(GOOD)
+  threatLevel        ThreatLevel        @default(LOW)
+  lastAssessment     DateTime?
+  
+  // Relations
+  opportunities   Opportunity[]
+  siteReports     SiteReport[]
+  siteReviews     SiteReview[]
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("heritage_sites")
+}
+
+enum HeritageSiteType {
+  TEMPLE
+  PALACE
+  TRADITIONAL_VILLAGE
+  ARCHAEOLOGICAL_SITE
+  CULTURAL_LANDSCAPE
+  MONUMENT
+  MUSEUM
+  TRADITIONAL_HOUSE
+  SACRED_SITE
+  CULTURAL_CENTER
+}
+
+enum ConservationStatus {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  CRITICAL
+}
+
+enum ThreatLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+model SiteReport {
+  id              String   @id @default(cuid())
+  siteId          String
+  userId          String
+  reportType      ReportType
+  condition       String
+  description     String   @db.Text
+  images          String[]
+  urgencyLevel    UrgencyLevel @default(LOW)
+  location        String?  // Specific location within site
+  reportedAt      DateTime @default(now())
+  
+  // Relations
+  site            HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("site_reports")
+}
+
+enum ReportType {
+  DAMAGE
+  VANDALISM
+  NATURAL_DETERIORATION
+  IMPROVEMENT_NEEDED
+  POSITIVE_OBSERVATION
+  SAFETY_CONCERN
+}
+
+enum UrgencyLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+model SiteReview {
+  id              String   @id @default(cuid())
+  siteId          String
+  userId          String
+  rating          Int      // 1-5 stars
+  title           String?
+  review          String   @db.Text
+  visitDate       DateTime?
+  images          String[]
+  helpful         Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  site            HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([siteId, userId])
+  @@map("site_reviews")
+}

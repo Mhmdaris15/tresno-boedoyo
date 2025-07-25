@@ -1,0 +1,15 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="toraja" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C2D12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A16207;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#toraja)"/>
+  <polygon points="80,180 150,120 220,180 150,200" fill="#FEF3C7" opacity="0.9"/>
+  <polygon points="250,180 320,120 390,180 320,200" fill="#FEF3C7" opacity="0.9"/>
+  <polygon points="150,120 180,90 120,90" fill="#F59E0B"/>
+  <polygon points="320,120 350,90 290,90" fill="#F59E0B"/>
+  <text x="200" y="240" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Tana Toraja</text>
+  <text x="200" y="260" text-anchor="middle" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12">Traditional Villages</text>
+</svg>

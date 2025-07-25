@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import Image from 'next/image'
+import LogoImage from '@/assets/tresno-budoyo-logo.png'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -27,11 +29,15 @@ export default function LoginPage() {
   
     if (showSplash) {
       return (
-        <div className="fixed inset-0 flex items-center justify-center bg-heritage-600 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-heritage-200 z-50">
           <div className="text-center">
             <div className="animate-pulse">
-              <h1 className="text-4xl font-bold text-white mb-4">Tresno Boedoyo</h1>
-              <p className="text-xl text-blue-100">Preserving Indonesia's Cultural Heritage</p>
+              <Image
+                src={LogoImage}
+                alt="Tresno Boedoyo Logo"
+                className="mx-auto mb-4"
+              />
+              <p className="text-xl text-heritage-900">Preserving Indonesia's Cultural Heritage</p>
             </div>
             <div className="mt-8">
               <div className="h-2 w-32 bg-white rounded-full mx-auto animate-bounce"></div>

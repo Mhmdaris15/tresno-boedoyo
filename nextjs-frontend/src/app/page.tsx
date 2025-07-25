@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import LogoImage from '@/assets/tresno-budoyo-logo.png'
 
 export default function HomePage() {
   const [showSplash, setShowSplash] = useState(true)
@@ -14,21 +16,26 @@ export default function HomePage() {
     return () => clearTimeout(timer)
   }, [])
 
-  if (showSplash) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-heritage-600 z-50">
-        <div className="text-center">
-          <div className="animate-pulse">
-            <h1 className="text-4xl font-bold text-white mb-4">Tresno Boedoyo</h1>
-            <p className="text-xl text-blue-100">Preserving Indonesia's Cultural Heritage</p>
-          </div>
-          <div className="mt-8">
-            <div className="h-2 w-32 bg-white rounded-full mx-auto animate-bounce"></div>
+   if (showSplash) {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-heritage-50 z-50">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <Image
+                src={LogoImage}
+                alt="Tresno Boedoyo Logo"
+                width={150}
+                className="mx-auto mb-4"
+              />
+              <p className="text-md text-heritage-900 px-5">Preserving Indonesia's Cultural Heritage</p>
+            </div>
+            <div className="mt-8">
+              <div className="h-2 w-32 bg-heritage-800 rounded-full mx-auto animate-bounce"></div>
+            </div>
           </div>
         </div>
-      </div>
-    )
-  }
+      )
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-yellow-50">
@@ -40,6 +47,9 @@ export default function HomePage() {
               <h1 className="text-xl font-bold text-heritage-600">Tresno Boedoyo</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <Link href="/heritage-sites" className="text-gray-700 hover:text-heritage-600">
+                Heritage Sites
+              </Link>
               <Link href="/login" className="text-gray-700 hover:text-heritage-600">
                 Login
               </Link>
@@ -62,11 +72,11 @@ export default function HomePage() {
             Connect with heritage sites, contribute to preservation efforts, and be part of safeguarding Indonesia's rich cultural legacy for future generations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register" className="bg-heritage-600 text-white px-8 py-3 rounded-lg hover:bg-heritage-700 font-medium">
-              Join as Volunteer
+            <Link href="/heritage-sites" className="bg-heritage-600 text-white px-8 py-3 rounded-lg hover:bg-heritage-700 font-medium">
+              Explore Heritage Sites
             </Link>
-            <Link href="/about" className="border border-blue-600 text-heritage-600 px-8 py-3 rounded-lg hover:bg-blue-50 font-medium">
-              Learn More
+            <Link href="/register" className="border border-heritage-600 text-heritage-600 px-8 py-3 rounded-lg hover:bg-heritage-50 font-medium">
+              Join as Volunteer
             </Link>
           </div>
         </div>
@@ -88,15 +98,14 @@ export default function HomePage() {
             <div className="bg-gray-50 rounded-xl p-8 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-6 h-6 text-heritage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Heritage Site Discovery
+                Interactive Heritage Map
               </h3>
               <p className="text-gray-600">
-                Explore and discover Indonesia's rich heritage sites, from ancient temples to traditional villages.
+                Explore Indonesia's heritage sites through interactive maps, from Borobudur to traditional villages across the archipelago.
               </p>
             </div>
 
